@@ -12,8 +12,6 @@ class AccountChartTemplate(models.AbstractModel):
             "code_digits": "7",
             "property_account_receivable_id": "account_activa_account_1122001",
             "property_account_payable_id": "account_activa_account_2122001",
-            "property_account_expense_categ_id": "account_activa_account_7151001",
-            "property_account_income_categ_id": "account_activa_account_5111001",
             "name": _("Venezuela - Binaural"),
         }
 
@@ -22,6 +20,8 @@ class AccountChartTemplate(models.AbstractModel):
         return {
             self.env.company.id: {
                 "account_fiscal_country_id": "base.ve",
+                "expense_account_id": "account_activa_account_7151001",
+                "income_account_id": "account_activa_account_5111001",
                 "bank_account_code_prefix": "1113",
                 "cash_account_code_prefix": "1111",
                 "transfer_account_code_prefix": "1129003",

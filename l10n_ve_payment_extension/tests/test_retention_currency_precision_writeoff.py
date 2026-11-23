@@ -147,7 +147,7 @@ class TestRetentionCurrencyPrecisionWriteoff(RetentionTestCommon):
             journal=self.journal_multi.id,
         )
         invoice.write({"currency_id": self.currency_usd.id})
-        invoice.action_post()
+        invoice.with_context(move_action_post_alert=True).action_post()
         return invoice
 
     def _bill_in_usd(self, amount):
@@ -1082,14 +1082,16 @@ class TestRetentionCurrencyPrecisionWriteoff(RetentionTestCommon):
 
     def _pay_in_usd(self, invoice, usd_amount):
         """Cobro en la moneda de la factura (lo que la app pide como pendiente)."""
-        wizard = self.env["account.payment.register"].with_context(
+        self.assertEqual(invoice.state, "posted")
+        with Form(self.env["account.payment.register"].with_context(
             active_model="account.move", active_ids=invoice.ids,
-        ).create({
-            "amount": usd_amount,
-            "currency_id": self.currency_usd.id,
-            "payment_date": fields.Date.today(),
-            "journal_id": self._usd_bank_journal().id,
-        })
+        )) as payment_form:
+            payment_form.journal_id = self._usd_bank_journal()
+            payment_form.currency_id = self.currency_usd
+            payment_form.amount = usd_amount
+        wizard = payment_form.save()
+        self.assertEqual(wizard.currency_id, self.currency_usd)
+        self.assertEqual(wizard.amount, usd_amount)
         wizard.action_create_payments()
         invoice.invalidate_recordset()
 
@@ -1127,7 +1129,7 @@ class TestRetentionCurrencyPrecisionWriteoff(RetentionTestCommon):
         if "invoice_date_display" in invoice._fields:
             vals["invoice_date_display"] = date
         invoice.write(vals)
-        invoice.action_post()
+        invoice.with_context(move_action_post_alert=True).action_post()
         return invoice
 
     def test_cycle_retention_then_payment_closes_the_invoice(self):

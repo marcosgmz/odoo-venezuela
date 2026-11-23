@@ -14,6 +14,18 @@ class TestForeignSupplierRequiredFields(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # When IGTF is installed, the partner form requires both advance accounts.
+        company = cls.env.company
+        if "advance_customer_account_id" in company._fields:
+            for field, code, name, account_type in (
+                ("advance_customer_account_id", "TADV01", "Customer advances", "liability_current"),
+                ("advance_supplier_account_id", "TADV02", "Supplier advances", "asset_current"),
+            ):
+                if not company[field]:
+                    company[field] = cls.env["account.account"].create({
+                        "code": code, "name": name, "account_type": account_type,
+                        "reconcile": True, "is_advance_account": True,
+                    })
         cls.country_ve = cls.env.ref("base.ve")
         cls.country_us = cls.env.ref("base.us")
         cls.state_ve = cls.env["res.country.state"].search(

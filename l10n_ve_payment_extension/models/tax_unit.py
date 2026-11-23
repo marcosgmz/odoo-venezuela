@@ -7,6 +7,24 @@ class TaxUnit(models.Model):
 
     available_date = fields.Date(string="Publish Date", store=True, tracking=True, required=True)
 
+    def _init_column(self, column_name):
+        if column_name == "available_date":
+            # The dependency installs the Bs. 0.40 seed before this required
+            # column exists. Its publication date is in Gaceta Oficial 42.359.
+            self.env.cr.execute("""
+                UPDATE tax_unit AS unit
+                   SET available_date = DATE '2022-04-20'
+                  FROM ir_model_data AS data
+                 WHERE data.module = 'l10n_ve_accountant'
+                   AND data.name = 'tax_unit_data_l10n_ve_payment_extension'
+                   AND data.model = 'tax.unit' AND data.res_id = unit.id
+                   AND unit.value = 0.40 AND unit.available_date IS NULL
+                   AND NOT EXISTS (
+                       SELECT 1 FROM tax_unit WHERE available_date = DATE '2022-04-20'
+                   )
+            """)
+        return super()._init_column(column_name)
+
     @api.constrains('value', 'available_date')
     def _check_unique_tax_unit(self):
         for record in self:
