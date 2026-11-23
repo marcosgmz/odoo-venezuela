@@ -1,4 +1,5 @@
 from odoo import fields
+from odoo.addons.l10n_ve_accountant.tests.common_rates import set_rate
 from odoo.tests import TransactionCase, tagged
 
 
@@ -11,6 +12,7 @@ class TestAccountDebitNote(TransactionCase):
         self.currency_usd = self.env.ref("base.USD")
         self.company.currency_id = self.currency_vef
         self.company.foreign_currency_id = self.currency_usd
+        set_rate(self.env, self.currency_usd, fields.Date.today(), self.company, 50.0)
 
         self.partner = self.env["res.partner"].create({"name": "Test DN Partner"})
 
@@ -83,7 +85,8 @@ class TestAccountDebitNote(TransactionCase):
                 ],
             }
         )
-        invoice.action_post()
+        invoice.with_context(move_action_post_alert=True).action_post()
+        self.assertEqual(invoice.state, "posted")
         return invoice
 
     def test_filter_enabled_true(self):

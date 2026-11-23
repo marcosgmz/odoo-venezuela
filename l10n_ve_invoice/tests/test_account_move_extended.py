@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from odoo import fields
+from odoo.addons.l10n_ve_accountant.tests.common_rates import set_rate
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
@@ -14,6 +15,7 @@ class TestAccountMoveExtended(TransactionCase):
         self.currency_usd = self.env.ref("base.USD")
         self.company.currency_id = self.currency_vef
         self.company.foreign_currency_id = self.currency_usd
+        set_rate(self.env, self.currency_usd, fields.Date.today(), self.company, 50.0)
 
         self.account_receivable = self.env["account.account"].create(
             {
@@ -308,6 +310,7 @@ class TestAccountMoveExtended(TransactionCase):
 
     def test_display_date_warning_past_date_draft(self):
         past_date = fields.Date.today() - timedelta(days=5)
+        set_rate(self.env, self.currency_usd, past_date, self.company, 50.0)
         invoice = self.env["account.move"].create(
             {
                 "move_type": "out_invoice",
@@ -754,6 +757,8 @@ class TestAccountMoveExtended(TransactionCase):
 
     def test_purchase_display_date_exceeds_accounting_date(self):
         self.company.block_invoice_display_date_upper_than_date = True
+        accounting_date = fields.Date.today() - timedelta(days=2)
+        set_rate(self.env, self.currency_usd, accounting_date, self.company, 50.0)
         with self.assertRaises(ValidationError):
             self.env["account.move"].create(
                 {
@@ -761,7 +766,7 @@ class TestAccountMoveExtended(TransactionCase):
                     "partner_id": self.partner.id,
                     "journal_id": self.journal_purchase.id,
                     "invoice_date_display": fields.Date.today(),
-                    "date": fields.Date.today() + timedelta(days=-2),
+                    "date": accounting_date,
                     "invoice_line_ids": [
                         (
                             0,
