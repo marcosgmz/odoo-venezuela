@@ -1,5 +1,6 @@
 
 from odoo import fields
+from odoo.addons.l10n_ve_accountant.tests.common_rates import set_rate
 from odoo.tests import TransactionCase, tagged
 from odoo.exceptions import ValidationError
 
@@ -18,6 +19,7 @@ class TestInvoiceTaxConstraint(TransactionCase):
             }
         )
 
+        set_rate(self.env, self.currency_vef, fields.Date.today(), self.company, 0.02)
         self.partner = self.env["res.partner"].create({"name": "Test customer"})
         
         self.account = self.env["account.account"].create({

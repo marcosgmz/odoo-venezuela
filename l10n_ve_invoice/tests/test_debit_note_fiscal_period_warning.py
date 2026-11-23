@@ -1,4 +1,5 @@
 from odoo import fields
+from odoo.addons.l10n_ve_accountant.tests.common_rates import set_rate
 from odoo.tests import TransactionCase, tagged
 
 
@@ -11,6 +12,8 @@ class TestDebitNoteFiscalPeriodWarning(TransactionCase):
         self.currency_usd = self.env.ref("base.USD")
         self.company.currency_id = self.currency_vef
         self.company.foreign_currency_id = self.currency_usd
+        for bill_date in ("2026-01-15", "2026-09-02"):
+            set_rate(self.env, self.currency_usd, bill_date, self.company, 50.0)
 
         self.partner = self.env["res.partner"].create({"name": "Test DN Period Partner"})
 

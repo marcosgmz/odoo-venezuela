@@ -1,5 +1,6 @@
 from odoo.tests import TransactionCase, tagged
 from odoo import fields, Command
+from odoo.addons.l10n_ve_accountant.tests.common_rates import set_rate
 from odoo.exceptions import UserError
 from unittest.mock import patch
 
@@ -12,6 +13,7 @@ class TestReportPrintRestriction(TransactionCase):
         self.company = self.env.user.company_id
         self.company.currency_id = self.env.ref('base.VEF')
         self.company.foreign_currency_id = self.env.ref('base.USD')
+        set_rate(self.env, self.company.foreign_currency_id, fields.Date.today(), self.company, 50.0)
 
         self.account_receivable = self.env['account.account'].create({
             'name': 'Receivable', 'code': '1111111',

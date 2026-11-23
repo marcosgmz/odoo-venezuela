@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 from odoo.tests import TransactionCase, tagged
 from odoo import fields, Command
+from odoo.addons.l10n_ve_accountant.tests.common_rates import set_rate
 
 @tagged("post_install", "-at_install", "l10n_ve_invoice")
 class TestCancelVisibility(TransactionCase):
@@ -89,6 +90,7 @@ class TestCancelVisibility(TransactionCase):
             yield
 
     def _create_invoice(self, move_type, date_str):
+        set_rate(self.env, self.foreign_currency, date_str, self.company, 50.0)
         invoice = self.env['account.move'].create({
             'move_type': move_type,
             'partner_id': self.partner.id,
